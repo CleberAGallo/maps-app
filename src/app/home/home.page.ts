@@ -1,4 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Geolocation, Position } from '@capacitor/geolocation';
 
 @Component({
   selector: 'app-home',
@@ -22,7 +23,7 @@ export class HomePage {
   // Request needed libraries.
   //@ts-ignore
   const { Map } = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
-  const { AdvancedMarkerElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
+  
 
   // The map, centered at Uluru
   this.map = new Map(
@@ -34,16 +35,41 @@ export class HomePage {
     }
   );
 
-  //The marker, positioned at Uluru
-  const marker = new AdvancedMarkerElement({
-    map: this.map,
-    position: position,
-    title: 'Uluru'
-  });
   
+
+  this.buscarPosicao();
+
   }
   ionViewWillEnter(){
     this.exibirMapa();
+  }
+
+  async buscarPosicao(){
+     const coordinates =await Geolocation.getCurrentPosition();
+     console.log('Curent position:', coordinates)
+
+     const position ={
+      lat: coordinates.coords.latitude,
+      lng: coordinates.coords.longitude
+     }
+
+     this.map.setCenter(position);
+     this.map.setZoom(18);
+
+     this.adicionarMarcador(coordinates);
+  }
+
+  async adicionarMarcador(localizacao: Position){
+    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
+    //The marker, positioned at Uluru
+    const marker = new AdvancedMarkerElement({
+    map: this.map,
+    position: {
+      lat: localizacao.coords.latitude,
+      lng: localizacao.coords.longitude
+    },
+    title: 'Uluru'
+    });
   }
 
 }
